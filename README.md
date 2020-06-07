@@ -11,6 +11,12 @@ This gem is a minimal implementation of Samir's Secret Sharing in Ruby that may 
 * Ruby >= 2.5.5 (CLOVERSPLITTER has not been tested on anything below 2.5.5)
 * SecureRandom (included in the Ruby Standard Library)
 
+## Installation
+CLOVERSPLITTER can be installed as follows:
+```
+gem install cloversplitter
+```
+
 ## Usage
 A list of six shares (with a minimum of three shares required for secret recovery) may be generated as follows:
 ```

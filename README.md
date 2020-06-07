@@ -5,7 +5,7 @@ A Ruby implementation of Samir's Secret Sharing.
 Please be aware that this gem has not undergone any form of security evaluation. This gem is not recommended for usage under mission-critical circumstances and should not be relied upon to protect confidential or secret information. Users should assume that this gem is insecure until they can independently confirm otherwise.
 
 ## Description
-This gem is a minimal implementation of Samir's Secret Sharing in Ruby that may be used to split a secret piece of text into a list of shares from which that text may later be recovered. By default, CLOVERSPLITTER uses the 18th Mersenne prime for share generation and produces a total of six shares with a minimum of three shares required for recovery. Although these defaults may be changed through optional parameters in the `cloversplitter.generate_shares` function, doing so is not recommended and may cause errors or issues with secrecy and recovery.
+This gem is a minimal implementation of Samir's Secret Sharing in Ruby that may be used to split a secret piece of text into a list of shares from which that text may later be recovered. By default, CLOVERSPLITTER uses the 18th Mersenne prime for share generation and produces a total of six shares with a minimum of three shares required for recovery. Although these defaults may be changed through optional parameters in the `CloverSplitter.generate_shares` function, doing so is not recommended and may cause errors or issues with secrecy and recovery.
 
 ## Dependencies
 * Ruby >= 2.5.5 (CLOVERSPLITTER has not been tested on anything below 2.5.5)

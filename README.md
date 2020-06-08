@@ -1,5 +1,5 @@
 # CLOVERSPLITTER
-A Ruby implementation of Shamir's Secret Sharing.
+A minimalist implementation of Shamir's Secret Sharing in Ruby that utilises nothing outside the standard library.
 
 # WARNING
 Please be aware that this gem has not undergone any form of security evaluation. This gem is not recommended for usage under mission-critical circumstances and should not be relied upon to protect confidential or secret information. Users should assume that this gem is insecure until they can independently confirm otherwise.

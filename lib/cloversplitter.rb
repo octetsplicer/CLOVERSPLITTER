@@ -1,5 +1,5 @@
 # Title: CLOVERSPLITTER
-# Version: 0.1.1
+# Version: 0.1.2
 #
 # WARNING: Please be aware that this gem has not undergone any form of security evaluation. This gem is not recommended for usage under mission-critical circumstances and should not be relied upon to protect confidential or secret information. Users should assume that this gem is insecure until they can independently confirm otherwise.
 #
@@ -26,19 +26,27 @@
 require "securerandom"
 
 class CloverSplitter
-	def self.eval_at(poly, x, prime=((2**3217)-1))
+	def self.eval_at(poly, x, prime)
+		# Evaluates polynomial at x (used for share generation).
 		accum = 0
+
 		poly.reverse.each do |coeff|
-			accum *= x
-			accum += coeff
-			accum %= prime
+			accum = ((accum*x)+coeff) % prime 
 		end
+
 		return accum
 	end
 
 	def self.str_to_int(a)
+		# Turns a string into an integer.
+
+		# Decode UTF-8 string into a list of integers (with one integer representing each character).
 		b = a.unpack("U*")
+
+		# Initialise c_b; this will be used to hold bytes (expressed in binary) for each character.
 		c_b = ""
+
+		# Loop through each value in b, appending the corresponding binary sequence for each character to c_b.
 		b.each do |i|
 			n = i.to_s(2)
 			while n.length < 8 do
@@ -46,14 +54,23 @@ class CloverSplitter
 			end
 			c_b += n
 		end
+
+		# Convert c_b into an integer.
 		c_b.to_i(2)
 	end
 
 	def self.int_to_str(a)
+		# Turns an integer into a string.
+
+		# Convert the integer into a string of binary.
 		b = a.to_s(2)
+
+		# Add zeroes to the start of the string of binary until the length is a multiple of 8.
 		while b.length % 8 != 0 do
 			b = "0"+b
 		end
+
+		# Convert the string of binary into a list of character values.
 		c = []
 		c_a = b.chars.each_slice(8).to_a
 		c_a.each do |i|
@@ -63,6 +80,8 @@ class CloverSplitter
 			end
 			c << s.to_i(2)
 		end
+
+		# Convert the list of character values back into a UTF-8 string.
 		d = ""
 		c.each do |i|
 			d << i.chr
@@ -77,16 +96,29 @@ class CloverSplitter
 		# minimum: The minimum number of shares required to recover the secret. [DEFAULT: 3]
 		# shares: The total number of shares to be generated. [DEFAULT: 6]
 		# prime: The prime number used for share generation. [DEFAULT: ((2**3217-1)) [NOTE: This is the 18th Mersenne Prime]]
-		secret_int = str_to_int(secret)
+
+		# Convert the secret into an integer.
+		secret_int = self.str_to_int(secret)
+
+		# Ensure that the parameters make at least some sense.
 		if minimum > shares
 			raise "The total number of shares to be generated must equal or exceed the minimum number of shares required for recovery."
 		end
+
+		# Create a list of coefficients for the polynomial, consisting of the secret integer and a series of randomly generated integers.
+		# The total length of the list should be the minimum number of shares required for recovery of the secret integer.
 		poly = [secret_int]+(Array.new(minimum-1) {(SecureRandom.rand(prime))})
+
+		# Evaluate n points on the polynomial, where n is the total number of shares to be generated.
 		points = []
 		(1..shares).each do |i|
 			points << [i, eval_at(poly, i, prime)]
 		end
+
+		# Attempt a test recovery of the secret from the set of all points.
 		check = self.recover_secret(points, prime)
+
+		# If the test recovery yielded the original secret, then the shares are valid and should be returned; if not, something went wrong.
 		if check == secret
 			return points
 		else
@@ -95,43 +127,55 @@ class CloverSplitter
 	end
 
 	def self.egcd(a, b)
+		# Extended Euclidean algorithm.
 		x, y = 0, 1
 		last_x, last_y = 1, 0
+
 		while b != 0 do
 			quot = a/b
 			a, b = b, a % b
 			x, last_x = last_x-quot*x, x
 			y, last_y = last_y-quot*y, y
 		end
+
 		return last_x, last_y
 	end
 
 	def self.divmod(num, den, p)
 		a, b = egcd(den, p)
+
 		return num*a
 	end
 
 	def self.prod(vals)
+		# Calculate the product of a list of values.
 		accum = 1
+
 		vals.each do |v|
 			accum *= v
 		end
+
 		return accum
 	end
 
 	def self.sum(vals)
+		# Calculate the sum of a list of values.
 		accum = 0
+
 		vals.each do |v|
 			accum += v
 		end
+
 		return accum
 	end
 
 	def self.lagrange_interpolate(x, x_s, y_s, p)
 		k = x_s.length
+
 		if k != x_s.uniq.length
 			raise "An error occured during lagrange interpolation."
 		end
+
 		nums = []
 		dens = []
 		(0..k-1).each do |i|
@@ -146,12 +190,15 @@ class CloverSplitter
 			nums << prod(nums_a)
 			dens << prod(dens_a)
 		end
+
 		den = prod(dens)
 		num_a = Array.new()
 		(0..(k-1)).each do |i|
 			num_a << divmod(nums[i]*den*y_s[i] % p, dens[i], p)
 		end
+
 		num = sum(num_a)
+
 		return (divmod(num, den, p)+p) % p
 	end
 
@@ -159,11 +206,15 @@ class CloverSplitter
 		# This function takes a list of shares and attempts to recover the secret string from those shares. If the number of shares is below the minimum number of shares required for recovery, the resulting string will be nonsensical and may scramble/gargle the console if printed. On a *nix system, the console can usually be reset with the "reset" command.
 		# shares: A list containing two or more shares.
 		# prime: The prime number that was used for share generation.
+
 		if shares.length < 2
 			raise "At least two shares are required in order to attempt secret recovery."
 		end
+
 		x_s, y_s = shares.transpose
+
 		recovered_data = lagrange_interpolate(0, x_s, y_s, prime)
-		return int_to_str(recovered_data)
+
+		return self.int_to_str(recovered_data)
 	end
 end

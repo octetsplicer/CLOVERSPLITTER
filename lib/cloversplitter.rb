@@ -1,5 +1,5 @@
 # Title: CLOVERSPLITTER
-# Version: 0.1.2
+# Version: 0.2.0
 #
 # WARNING: Please be aware that this gem has not undergone any form of security evaluation. This gem is not recommended for usage under mission-critical circumstances and should not be relied upon to protect confidential or secret information. Users should assume that this gem is insecure until they can independently confirm otherwise.
 #
@@ -38,13 +38,13 @@ class CloverSplitter
 	end
 
 	def self.str_to_int(a)
-		# Turns a string into an integer.
+		# Turns an ASCII-8BIT string into an integer.
 
-		# Decode UTF-8 string into a list of integers (with one integer representing each character).
-		b = a.unpack("U*")
+		# Decode string into a list of integers (with one integer representing each character).
+		b = a.each_byte.to_a
 
 		# Initialise c_b; this will be used to hold bytes (expressed in binary) for each character.
-		c_b = ""
+		c_b = String.new()
 
 		# Loop through each value in b, appending the corresponding binary sequence for each character to c_b.
 		b.each do |i|
@@ -74,15 +74,15 @@ class CloverSplitter
 		c = []
 		c_a = b.chars.each_slice(8).to_a
 		c_a.each do |i|
-			s = ""
+			s = String.new()
 			i.each do |j|
 				s << j
 			end
 			c << s.to_i(2)
 		end
 
-		# Convert the list of character values back into a UTF-8 string.
-		d = ""
+		# Convert the list of character values back into a string.
+		d = String.new()
 		c.each do |i|
 			d << i.chr
 		end
@@ -97,12 +97,15 @@ class CloverSplitter
 		# shares: The total number of shares to be generated. [DEFAULT: 6]
 		# prime: The prime number used for share generation. [DEFAULT: ((2**3217-1)) [NOTE: This is the 18th Mersenne Prime]]
 
+		# Convert the secret into ASCII-8BIT.
+		secret = secret.force_encoding("ASCII-8BIT")
+
 		# Convert the secret into an integer.
 		secret_int = self.str_to_int(secret)
 
 		# Ensure that the parameters make at least some sense.
 		if minimum > shares
-			raise "The total number of shares to be generated must equal or exceed the minimum number of shares required for recovery."
+			raise("The total number of shares to be generated must equal or exceed the minimum number of shares required for recovery.")
 		end
 
 		# Create a list of coefficients for the polynomial, consisting of the secret integer and a series of randomly generated integers.
@@ -122,7 +125,7 @@ class CloverSplitter
 		if check == secret
 			return points
 		else
-			raise "Something went wrong during share generation. This could be due to the secret being too long or due to the minimum, shares and/or prime parameters being misconfigured."
+			raise("Something went wrong during share generation. This could be due to the secret being too long or due to the minimum, shares and/or prime parameters being misconfigured.")
 		end
 	end
 
@@ -173,7 +176,7 @@ class CloverSplitter
 		k = x_s.length
 
 		if k != x_s.uniq.length
-			raise "An error occured during lagrange interpolation."
+			raise("An error occured during lagrange interpolation.")
 		end
 
 		nums = []
@@ -208,7 +211,7 @@ class CloverSplitter
 		# prime: The prime number that was used for share generation.
 
 		if shares.length < 2
-			raise "At least two shares are required in order to attempt secret recovery."
+			raise("At least two shares are required in order to attempt secret recovery.")
 		end
 
 		x_s, y_s = shares.transpose

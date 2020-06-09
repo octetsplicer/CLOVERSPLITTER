@@ -1,5 +1,5 @@
 # Title: CLOVERSPLITTER
-# Version: 0.2.0
+# Version: 0.2.1
 #
 # WARNING: Please be aware that this gem has not undergone any form of security evaluation. This gem is not recommended for usage under mission-critical circumstances and should not be relied upon to protect confidential or secret information. Users should assume that this gem is insecure until they can independently confirm otherwise.
 #
@@ -39,6 +39,9 @@ class CloverSplitter
 
 	def self.str_to_int(a)
 		# Turns an ASCII-8BIT string into an integer.
+
+		# Prepend \x80 to the string to prevent information loss occuring for strings that start with \x00.
+		a = "\x80".force_encoding("ASCII-8BIT")+a
 
 		# Decode string into a list of integers (with one integer representing each character).
 		b = a.each_byte.to_a
@@ -86,6 +89,10 @@ class CloverSplitter
 		c.each do |i|
 			d << i.chr
 		end
+
+		# Ignore the first byte (which will always be \x80).
+		d = d[1, d.length-1]
+
 		return d
 	end
 

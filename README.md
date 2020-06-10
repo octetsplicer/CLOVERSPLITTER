@@ -43,3 +43,9 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 If you found this project useful and would like to encourage me to continue making open source software, please consider making a donation via the following link:
 
 https://www.buymeacoffee.com/peterfunnell
+
+Donations in Bitcoin (BTC) are also very welcome. My BTC wallet address is as follows:
+
+```
+3EdoXV1w8H7y7M9ZdpjRC7GPnX4aouy18g
+```
